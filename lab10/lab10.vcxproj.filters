@@ -36,6 +36,12 @@
     <ClCompile Include="menu.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="data_generator.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="color_support.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="llist.h">
@@ -45,9 +51,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="group.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="colors.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="group_queries.h">
@@ -60,6 +63,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="student.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="data_generator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="color_support.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pretty_console.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

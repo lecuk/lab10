@@ -4,14 +4,18 @@
 #include "llist.h"
 #include "student.h"
 
-#define GROUP_NAME_MAX 50
+#define GROUP_NAME_MAX 35
 
 typedef enum EStudentSort
 {
-	SortedByName = 0,
-	SortedByAge,
-	SortedBySum,
-	SortedByMean
+	SortedByName_Ascending = 0,
+	SortedByAge_Ascending,
+	SortedBySum_Ascending,
+	SortedByMean_Ascending,
+	SortedByName_Descending,
+	SortedByAge_Descending,
+	SortedBySum_Descending,
+	SortedByMean_Descending
 } StudentSort;
 
 typedef struct TGroup
@@ -29,13 +33,11 @@ void group_printInfo(const Group *group);
 void group_tryAddStudent(Group *group, const Student *student);
 void group_removeStudent(Group *group, const Student *student);
 void group_sort(Group* group, StudentSort sort);
-void group_sortByName(Group *group);
-void group_sortByAge(Group *group);
-void group_sortBySum(Group *group);
-void group_sortByMean(Group *group);
 void group_changeCondition(Group *group, Condition *newCondition);
 bool group_doesStudentMatchCondition(const Group *group, const Student *student);
 void group_tryAddToAnotherGroup(const Group *source, Group *destination);
 void group_rename(Group* group, const char* name);
+float group_getMeanAge(Group* group);
+float group_getMeanGrade(Group* group);
 
 #endif

@@ -21,25 +21,10 @@ Group *group_createWithCondition(const char *name, Condition *condition, const S
 	Group *group = (Group*)malloc(sizeof(Group));
 	if (group)
 	{
+		group->students = llist_create(NULL, ByPointer, sizeof(Student));
 		group_rename(group, name);
-		switch (sort)
-		{
-		case SortedByAge:
-			group->students = llist_create(student_compareAge, ByPointer, sizeof(Student));
-			break;
-		case SortedBySum:
-			group->students = llist_create(student_compareSum, ByPointer, sizeof(Student));
-			break;
-		case SortedByMean:
-			group->students = llist_create(student_compareMean, ByPointer, sizeof(Student));
-			break;
-		case SortedByName:
-		default:
-			group->students = llist_create(student_compareByAlphabet, ByPointer, sizeof(Student));
-			break;
-		}
-		group->sort = sort;
 		group->condition = condition;
+		group_sort(group, sort);
 	}
 	return group;
 }
@@ -71,44 +56,16 @@ void group_removeStudent(Group *group, const Student *student)
 	llist_remove(group->students, student);
 }
 
-void group_sortByName(Group *group)
-{
-	llist_rearrange(group->students, student_compareByAlphabet);
-	group->sort = SortedByName;
-}
-
-void group_sortByAge(Group *group)
-{
-	llist_rearrange(group->students, student_compareAge);
-	group->sort = SortedByAge;
-}
-
-void group_sortBySum(Group *group)
-{
-	llist_rearrange(group->students, student_compareSum);
-	group->sort = SortedBySum;
-}
-
-void group_sortByMean(Group *group)
-{
-	llist_rearrange(group->students, student_compareMean);
-	group->sort = SortedByMean;
-}
-
-static Group *_curGroup;
-static void _removeIfNecessary(void *item)
-{
-	Student *student = (Student*)item;
-	if (!group_doesStudentMatchCondition(_curGroup, student))
-	{
-		group_removeStudent(_curGroup, student);
-	}
-}
 void group_changeCondition(Group *group, Condition *newCondition)
 {
 	group->condition = newCondition;
-	_curGroup = group;
-	llist_foreach(group->students, _removeIfNecessary);
+	llist_foreach(group->students, student)
+	{
+		if (!group_doesStudentMatchCondition(group, student_node->item))
+		{
+			group_removeStudent(group, (Student*)(student_node->item));
+		}
+	}
 }
 
 bool group_doesStudentMatchCondition(const Group *group, const Student *student)
@@ -116,18 +73,74 @@ bool group_doesStudentMatchCondition(const Group *group, const Student *student)
 	return group->condition(student);
 }
 
-static Group *_curDestination;
-static void _addIfNecessary(void *target)
-{
-	group_tryAddStudent(_curDestination, (Student*)target);
-}
 void group_tryAddToAnotherGroup(const Group *source, Group *destination)
 {
-	_curDestination = destination;
-	llist_foreach(source->students, _addIfNecessary);
+	llist_foreach(source->students, student)
+	{
+		if (group_doesStudentMatchCondition(destination, student_node->item))
+		{
+			group_tryAddStudent(destination, (Student*)(student_node->item));
+		}
+	}
 }
 
 void group_rename(Group* group, const char* name)
 {
 	strncpy_s(group->name, GROUP_NAME_MAX, name, GROUP_NAME_MAX);
+}
+
+void group_sort(Group* group, StudentSort sort)
+{
+	switch (sort)
+	{
+	case SortedByAge_Descending:
+		llist_rearrange(group->students, student_compareAgeDescending);
+		break;
+	case SortedBySum_Descending:
+		llist_rearrange(group->students, student_compareSumDescending);
+		break;
+	case SortedByMean_Descending:
+		llist_rearrange(group->students, student_compareMeanDescending);
+		break;
+	case SortedByName_Descending:
+		llist_rearrange(group->students, student_compareNameDescending);
+		break;
+	case SortedByAge_Ascending:
+		llist_rearrange(group->students, student_compareAgeAscending);
+		break;
+	case SortedBySum_Ascending:
+		llist_rearrange(group->students, student_compareSumAscending);
+		break;
+	case SortedByMean_Ascending:
+		llist_rearrange(group->students, student_compareMeanAscending);
+		break;
+	case SortedByName_Ascending:
+	default:
+		llist_rearrange(group->students, student_compareNameAscending);
+		break;
+	}
+
+	group->sort = sort;
+}
+
+float group_getMeanAge(Group* group)
+{
+	float sum = 0;
+	int count = group->students->count;
+	llist_foreach(group->students, student)
+	{
+		sum += ((Student*)(student_node->item))->age;
+	}
+	return (count) ? (sum / count) : 0;
+}
+
+float group_getMeanGrade(Group* group)
+{
+	float sum = 0;
+	int count = group->students->count;
+	llist_foreach(group->students, student)
+	{
+		sum += ((Student*)(student_node->item))->meanGrade;
+	}
+	return (count) ? (sum / count) : 0;
 }

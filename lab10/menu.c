@@ -27,7 +27,7 @@ const char* get_input(char* input, size_t maxSize)
 
 int menu_group_addStudent(Group* group)
 {
-	char firstName[STUDENT_MAX_FIRST_NAME], lastName[STUDENT_MAX_LAST_NAME], sexInput[7], confirm[4], dateOfBirth[20], gradeInput[15];
+	char firstName[STUDENT_MAX_FIRST_NAME], lastName[STUDENT_MAX_LAST_NAME], genderInput[7], confirm[4], dateOfBirth[20], gradeInput[15];
 
 	while (1) //first and last name input
 	{
@@ -58,15 +58,15 @@ int menu_group_addStudent(Group* group)
 	}
 
 	bool sex;
-	while (1) //sex input
+	while (1) //gender input
 	{
-		printf("Enter sex of the student " C_FG_AQUA "(male/female)" C_RESET ":\n");
-		get_input(sexInput, 7);
-		if (!strcmp(sexInput, "male"))
+		printf("Enter gender of the student (" C_FG_AQUA "male" C_RESET "/" C_FG_AQUA "female" C_RESET "):\n");
+		get_input(genderInput, 7);
+		if (!strcmp(genderInput, "male"))
 		{
 			sex = STUDENT_MALE;
 		}
-		else if (!strcmp(sexInput, "female"))
+		else if (!strcmp(genderInput, "female"))
 		{
 			sex = STUDENT_FEMALE;
 		}
@@ -76,7 +76,7 @@ int menu_group_addStudent(Group* group)
 			continue;
 		}
 
-		printf("Student is " C_FG_YELLOW "%s" C_RESET ". Type " C_FG_AQUA "yes" C_RESET " to confirm.\n", sexInput);
+		printf("Student is " C_FG_YELLOW "%s" C_RESET ". Type " C_FG_AQUA "yes" C_RESET " to confirm.\n", genderInput);
 		get_input(confirm, 4);
 		if (strcmp(confirm, "yes"))
 		{
@@ -121,20 +121,25 @@ int menu_group_addStudent(Group* group)
 
 	while (1)
 	{
-		float grade;
+		float grade = 0;
 
 		printf("Enter grades to add:\n"
 			"(Type " C_FG_AQUA "stop" C_RESET " to... stop)\n");
 		do
 		{
 			get_input(gradeInput, 15);
-			while (!sscanf_s(gradeInput, "%f", &grade) && strcmp(gradeInput, "stop"))
+
+			if (!strcmp(gradeInput, "stop")) break;
+
+			if (!sscanf_s(gradeInput, "%f", &grade))
 			{
 				printf(C_FG_ORANGE "Invalid input, need to be a floating-point number.\n" C_RESET);
-				get_input(gradeInput, 15);
 			}
-			student_addGrade(student, grade);
-		} while (strcmp(gradeInput, "stop"));
+			else
+			{
+				student_addGrade(student, grade);
+			}
+		} while (1);
 
 		printf("Students sum = " C_FG_YELLOW "%0.2f" C_RESET ", mean = " C_FG_YELLOW "%0.2f" C_RESET ". Is it right? Type " C_FG_AQUA "yes" C_RESET " to confirm.\n", student->sumGrade, student->meanGrade);
 		get_input(confirm, 4);
@@ -171,7 +176,7 @@ void group_show(Group* group)
 {
 	int index = 1;
 	printf("|----------------------------------------------------------------------------------------------------------|\n");
-	printf("| Group %-98s |\n", group->name);
+	printf("| %-40s   %5d student(s)    Mean age = %-8.2f Mean grade = %-8.1f |\n", group->name, group->students->count, group_getMeanAge(group), group_getMeanGrade(group));
 	printf("|-----+--------------------+------------------------------+--------+--------------------+---------+--------|\n");
 	printf("|  #  |        Name        |            Surname           | Gender |   Date of birth    |   Sum   |  Mean  |\n");
 	llist_foreach(group->students, student)
@@ -190,12 +195,90 @@ void group_show(Group* group)
 
 int menu_group_sort(Group* group)
 {
-	printf("How to sort a group?\n"
-		"\t" C_FG_AQUA "name" C_RESET " - sort by last name, then by first name, then by mean.\n"
-		"\t" C_FG_AQUA "age" C_RESET " - sort by age, then by name.\n"
-		"\t" C_FG_AQUA "sum" C_RESET " - sort by sum, then by name.\n"
-		"\t" C_FG_AQUA "mean" C_RESET " - sort by mean, then by name.\n"
+	printf("How to sort a group? (Example: " C_FG_AQUA "age-" C_RESET " sorts in descending order by age)\n"
+		"\t" C_FG_AQUA "name+" C_RESET "/" C_FG_AQUA "-" C_RESET " - sort by last name, then by first name, then by mean.\n"
+		"\t" C_FG_AQUA "age+" C_RESET "/" C_FG_AQUA "-" C_RESET " - sort by age, then by name.\n"
+		"\t" C_FG_AQUA "sum+" C_RESET "/" C_FG_AQUA "-" C_RESET " - sort by sum, then by name.\n"
+		"\t" C_FG_AQUA "mean+" C_RESET "/" C_FG_AQUA "-" C_RESET " - sort by mean, then by name.\n"
 		"\t" C_FG_AQUA "back" C_RESET " - back to group menu.\n");
+
+	char inputBuffer[10];
+
+	while (1)
+	{
+		get_input(inputBuffer, 10);
+
+		if (!strcmp(inputBuffer, "name-"))
+		{
+			printf(C_FG_GRAY "Sorted in alphabetical order (descending).\n" C_RESET);
+			group_sort(group, SortedByName_Descending);
+			return menu_group(group);
+		}
+		else if (!strcmp(inputBuffer, "name+"))
+		{
+			printf(C_FG_GRAY "Sorted in alphabetical order (ascending).\n" C_RESET);
+			group_sort(group, SortedByName_Ascending);
+			return menu_group(group);
+		}
+		else if (!strcmp(inputBuffer, "age-"))
+		{
+			printf(C_FG_GRAY "Sorted by age (descending).\n" C_RESET);
+			group_sort(group, SortedByAge_Descending);
+			return menu_group(group);
+		}
+		else if (!strcmp(inputBuffer, "age+"))
+		{
+			printf(C_FG_GRAY "Sorted by age (ascending).\n" C_RESET);
+			group_sort(group, SortedByAge_Ascending);
+			return menu_group(group);
+		}
+		else if (!strcmp(inputBuffer, "sum-"))
+		{
+			printf(C_FG_GRAY "Sorted by sum (descending).\n" C_RESET);
+			group_sort(group, SortedBySum_Descending);
+			return menu_group(group);
+		}
+		else if (!strcmp(inputBuffer, "sum+"))
+		{
+			printf(C_FG_GRAY "Sorted by sum (ascending).\n" C_RESET);
+			group_sort(group, SortedBySum_Ascending);
+			return menu_group(group);
+		}
+		else if (!strcmp(inputBuffer, "mean-"))
+		{
+			printf(C_FG_GRAY "Sorted by mean (descending).\n" C_RESET);
+			group_sort(group, SortedByMean_Descending);
+			return menu_group(group);
+		}
+		else if (!strcmp(inputBuffer, "mean+"))
+		{
+			printf(C_FG_GRAY "Sorted by mean (ascending).\n" C_RESET);
+			group_sort(group, SortedByMean_Ascending);
+			return menu_group(group);
+		}
+		else if (!strcmp(inputBuffer, "back"))
+		{
+			return menu_group(group);
+		}
+		else
+		{
+			printf(C_FG_ORANGE "Unknown command. Try again.\n" C_RESET);
+		}
+	}
+}
+
+int menu_group_filter(Group* group)
+{
+	printf("Filter by:\n"
+		"\t" C_FG_AQUA "firstname" C_RESET " - students which contain selected substring in their first name only.\n"
+		"\t" C_FG_AQUA "lastname" C_RESET " - students which contain selected substring in their last name only.\n"
+		"\t" C_FG_AQUA "name" C_RESET " - students which contain selected substring in either first or last name.\n"
+		"\t" C_FG_AQUA "gender" C_RESET " - students which are males or females only.\n"
+		"\t" C_FG_AQUA "age" C_RESET " - students which are this old in selected range.\n"
+		"\t" C_FG_AQUA "dateofbirth" C_RESET " - students which were born in selected range.\n"
+		"\t" C_FG_AQUA "sum" C_RESET " - students which have their sum grade in selected range.\n"
+		"\t" C_FG_AQUA "age" C_RESET " - students which have their mean grade in selected range.\n"
+		"\t" C_FG_AQUA "back" C_RESET " - back to main menu.\n");
 
 	char inputBuffer[100];
 
@@ -203,29 +286,19 @@ int menu_group_sort(Group* group)
 	{
 		get_input(inputBuffer, 100);
 
-		if (!strcmp(inputBuffer, "name"))
+		if (!strcmp(inputBuffer, "firstname"))
 		{
-			printf(C_FG_GRAY "Sorted in alphabetical order.\n" C_RESET);
-			group_sortByName(group);
-			return menu_group(group);
+			printf("Enter substring of student's first name you want to find: \n");
+			get_input(inputBuffer, STUDENT_MAX_FIRST_NAME);
+			Group* result = query_findByFirstName(group, inputBuffer);
+			return menu_group(result);
 		}
-		else if (!strcmp(inputBuffer, "age"))
+		else if (!strcmp(inputBuffer, "firstname"))
 		{
-			printf(C_FG_GRAY "Sorted by age.\n" C_RESET);
-			group_sortByAge(group);
-			return menu_group(group);
-		}
-		else if (!strcmp(inputBuffer, "sum"))
-		{
-			printf(C_FG_GRAY "Sorted by sum.\n" C_RESET);
-			group_sortBySum(group);
-			return menu_group(group);
-		}
-		else if (!strcmp(inputBuffer, "mean"))
-		{
-			printf(C_FG_GRAY "Sorted by mean.\n" C_RESET);
-			group_sortByMean(group);
-			return menu_group(group);
+			printf("Enter substring of student's last name you want to find: \n");
+			get_input(inputBuffer, STUDENT_MAX_LAST_NAME);
+			Group* result = query_findByLastName(group, inputBuffer);
+			return menu_group(result);
 		}
 		else if (!strcmp(inputBuffer, "back"))
 		{
@@ -247,6 +320,7 @@ int menu_group(Group* group)
 		"\t" C_FG_AQUA "student " C_FG_YELLOW "N" C_RESET " - menu of " C_FG_YELLOW "N" C_RESET "-th student in the group.\n"
 		"\t" C_FG_AQUA "rename" C_RESET " - rename group.\n"
 		"\t" C_FG_AQUA "sort" C_RESET " - sort list by name, grades etc.\n"
+		"\t" C_FG_AQUA "filter" C_RESET " - filter list to find specific students.\n"
 		"\t" C_FG_AQUA "exit" C_RESET " - save data and exit the program.\n");
 
 	char inputBuffer[100];
@@ -294,6 +368,10 @@ int menu_group(Group* group)
 		{
 			return menu_group_sort(group);
 		}
+		else if (!strcmp(inputBuffer, "filter"))
+		{
+			return menu_group_filter(group);
+		}
 		else if (!strcmp(inputBuffer, "exit"))
 		{
 			group_saveToFile(group, "data.txt");
@@ -312,6 +390,7 @@ int menu_student(Group* group, Student* student)
 	printf("What do you want to do with " C_FG_YELLOW "%s %s" C_RESET "?\n", student->firstName, student->lastName);
 	printf("Select next option:\n"
 		"\t" C_FG_AQUA "edit" C_RESET " - edit student data\n"
+		"\t" C_FG_AQUA "addgrade" C_RESET " - add new grade to student's marks\n"
 		"\t" C_FG_AQUA "info" C_RESET " - show all info about this student\n"
 		"\t" C_FG_AQUA "remove" C_RESET " - remove student from group\n"
 		"\t" C_FG_AQUA "back" C_RESET " - go to main menu\n");
@@ -436,13 +515,18 @@ int menu_student_edit(Group* group, Student* student)
 		do
 		{
 			get_input(gradeInput, 15);
-			while (!sscanf_s(gradeInput, "%f", &grade))
+
+			if (!strcmp(gradeInput, "stop")) break;
+
+			if (!sscanf_s(gradeInput, "%f", &grade))
 			{
 				printf(C_FG_ORANGE "Invalid input, need to be a floating-point number.\n" C_RESET);
-				get_input(gradeInput, 15);
 			}
-			student_addGrade(student, grade);
-		} while (strcmp(gradeInput, "stop"));
+			else
+			{
+				student_addGrade(student, grade);
+			}
+		} while (1);
 	}
 
 	return menu_student(group, student);
@@ -492,14 +576,17 @@ int menu_student_addGrade(Group* group, Student* student)
 	do
 	{
 		get_input(gradeInput, 15);
+
 		if (!strcmp(gradeInput, "stop")) break;
 
-		while (!sscanf_s(gradeInput, "%f", &grade))
+		if (!sscanf_s(gradeInput, "%f", &grade))
 		{
 			printf(C_FG_ORANGE "Invalid input, need to be a floating-point number.\n" C_RESET);
-			get_input(gradeInput, 15);
 		}
-		student_addGrade(student, grade);
+		else
+		{
+			student_addGrade(student, grade);
+		}
 	} while (1);
 
 	return menu_student(group, student);

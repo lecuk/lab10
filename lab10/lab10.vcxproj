@@ -141,6 +141,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="color_support.c" />
+    <ClCompile Include="data_generator.c" />
     <ClCompile Include="date_time.c" />
     <ClCompile Include="group.c" />
     <ClCompile Include="group_queries.c" />
@@ -148,10 +150,12 @@
     <ClCompile Include="main.c" />
     <ClCompile Include="menu.c" />
     <ClCompile Include="student.c" />
+    <ClInclude Include="color_support.h" />
+    <ClInclude Include="data_generator.h" />
     <ClInclude Include="student.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="colors.h" />
+    <ClInclude Include="pretty_console.h" />
     <ClInclude Include="date_time.h" />
     <ClInclude Include="group.h" />
     <ClInclude Include="group_queries.h" />
